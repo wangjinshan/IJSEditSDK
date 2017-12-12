@@ -16,4 +16,12 @@
 @property (nonatomic, copy) void (^typeTwoCallBack)(UIButton *button);    // 方式2
 @property (nonatomic, copy) void (^cancleLastCallBack)(UIButton *button); // 撤销
 
+/**
+ 切换Button的状态
+
+ @param button 需要切换的button
+ */
+- (void)resetButtonStatus:(UIButton *)button;
+
+
 @end

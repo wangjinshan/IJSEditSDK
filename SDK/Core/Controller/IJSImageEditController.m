@@ -148,6 +148,7 @@
     // 画笔
     self.toolsView.panButtonBlock = ^(UIButton *button) {
 
+        [weakSelf.mosaicToolView resetButtonStatus:nil];  // 恢复button的原始状态
         BOOL isHidden = button.isSelected;
 
         weakSelf.currentModel = IJSIDrawMode;
@@ -172,17 +173,26 @@
     
     // 笑脸图
     self.toolsView.smileButtonBlock = ^(UIButton *button) {
+        [weakSelf.mosaicToolView resetButtonStatus:nil];  // 恢复button的原始状态
         weakSelf.currentModel = IJSIPaperMode;
         [weakSelf _hiddenplaceholderToolViewSubView];
         weakSelf.placeholderToolView.frame = CGRectMake(0, JSScreenHeight -IJSGTabbarSafeBottomMargin - JSScreenHeight * 230 / 667, JSScreenWidth, JSScreenHeight * 230 / 667);
         weakSelf.mapView.hidden = NO;
-        [weakSelf _hiddenPlaceholderToolView:NO];
-        [weakSelf.view bringSubviewToFront:weakSelf.placeholderToolView];
+        if (weakSelf.mapImageArr)
+        {
+            [weakSelf _hiddenPlaceholderToolView:NO];
+            [weakSelf.view bringSubviewToFront:weakSelf.placeholderToolView];
+        }
+        else
+        {
+            [weakSelf _hiddenPlaceholderToolView:YES];
+        }
         [weakSelf _drawingViewSubViewUserInteractionEnabled:nil state:NO];
     };
 
     // 文字
     self.toolsView.textButtonBlock = ^(UIButton *button) {
+        [weakSelf.mosaicToolView resetButtonStatus:nil];  // 恢复button的原始状态
         weakSelf.currentModel = IJSITextMode;
         [weakSelf _hiddenplaceholderToolViewSubView];
         weakSelf.imputTextView.hidden = NO;
@@ -208,6 +218,7 @@
     };
     // 裁剪
     self.toolsView.clipButtonBlock = ^(UIButton *button) {
+        [weakSelf.mosaicToolView resetButtonStatus:nil];  // 恢复button的原始状态
         weakSelf.currentModel = IJSIClipMode;
          [weakSelf _hiddenPlaceholderToolView:YES];
         [weakSelf _completeCallback:^(UIImage *image) {
@@ -426,9 +437,6 @@
             mapView.cancelCallBack = ^{
                 [weakSelf _hiddenPlaceholderToolView:YES];
             };
-        }
-        else
-        {
         }
     }
     return _mapView;

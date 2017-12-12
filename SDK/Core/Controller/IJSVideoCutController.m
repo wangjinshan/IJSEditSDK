@@ -32,6 +32,8 @@
 @property (nonatomic, strong) NSTimer *listenPlayerTimer;           // 监听的时间
 @property (nonatomic, assign) CGFloat backStartPosition;            // 回到开始位置
 @property (nonatomic, assign) BOOL isDoing;                         // 正在处理
+@property(nonatomic,strong) AVAsset *avasset;  // 资源
+@property(nonatomic,assign) BOOL isCancle;  // 已经取消
 @end
 
 @implementation IJSVideoCutController
@@ -39,11 +41,12 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.view.backgroundColor = [UIColor blackColor];
+
     self.edgesForExtendedLayout = UIRectEdgeNone;
     self.isPlaying = YES;
-    self.canEdit = YES;
-    
+    self.canEdit = NO;
+    self.isCancle = NO;
+    self.avasset =[AVAsset assetWithURL:self.inputPath];
     [self _setupUI];        // 重置UI
     [self _didclickAction]; //点击事件
 }
@@ -83,15 +86,15 @@
 
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapAction:)];
     [playView addGestureRecognizer:tap];
-    AVAsset *avasset =[AVAsset assetWithURL:self.inputPath];
-    AVPlayerItem *playerItem = [[AVPlayerItem alloc] initWithAsset:avasset];
+ 
+    AVPlayerItem *playerItem = [[AVPlayerItem alloc] initWithAsset:self.avasset];
     self.player = [AVPlayer playerWithPlayerItem:playerItem];
     AVPlayerLayer *playerLayer = [AVPlayerLayer playerLayerWithPlayer:_player];
     playerLayer.frame = CGRectMake(0, 0, self.playView.js_width, self.playView.js_height);
     playerLayer.contentsGravity = AVLayerVideoGravityResizeAspect;
     self.player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
     [self.playView.layer addSublayer:playerLayer];
-
+    
     // 播放按钮
     UIButton *playButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
     [playButton setBackgroundImage:[IJSFImageGet loadImageWithBundle:@"JSPhotoSDK" subFile:@"" grandson:@"" imageName:@"MMVideoPreviewPlay@2x" imageType:@"png"] forState:UIControlStateNormal];
@@ -110,7 +113,7 @@
     }
     else
     {
-      navigationView = [[IJSImageNavigationView alloc] initWithFrame:CGRectMake(0, 0, JSScreenWidth, IJSVideoEditNavigationHeight)];
+      navigationView = [[IJSImageNavigationView alloc] initWithFrame:CGRectMake(0, 3, JSScreenWidth, IJSVideoEditNavigationHeight)];
     }
     navigationView.backgroundColor = [UIColor clearColor];
     [self.view addSubview:navigationView];
@@ -118,7 +121,7 @@
     [self.view bringSubviewToFront:navigationView];
     
     // 底部的UI 在数据请求完成再加载
-    Float64 duration = CMTimeGetSeconds([avasset duration]);
+    Float64 duration = CMTimeGetSeconds([self.avasset duration]);
     if (self.maxCutTime >= duration)
     {
         self.maxCutTime = duration;
@@ -128,7 +131,7 @@
         self.minCutTime = duration;
     }
 
-    IJSVideoTrimView *trimView = [[IJSVideoTrimView alloc] initWithFrame:CGRectMake(0, JSScreenHeight - IJSVideotrimViewHeight - IJSGTabbarSafeBottomMargin, JSScreenWidth, IJSVideotrimViewHeight) minCutTime:self.minCutTime ?: 4 maxCutTime:self.maxCutTime ?: 10 assetDuration:duration avAsset:avasset];
+    IJSVideoTrimView *trimView = [[IJSVideoTrimView alloc] initWithFrame:CGRectMake(0, JSScreenHeight - IJSVideotrimViewHeight - IJSGTabbarSafeBottomMargin, JSScreenWidth, IJSVideotrimViewHeight) minCutTime:self.minCutTime ?self.minCutTime: 4 maxCutTime:self.maxCutTime ?self.maxCutTime: 10 assetDuration:duration avAsset:self.avasset];
     trimView.backgroundColor = [UIColor clearColor];
     [self.view addSubview:trimView];
     trimView.delegate = self;
@@ -142,7 +145,15 @@
     __weak typeof(self) weakSelf = self;
     //取消
     self.navigationView.cancleBlock = ^{
-        [weakSelf.navigationController popViewControllerAnimated:YES];
+        weakSelf.isCancle = YES;
+        if (weakSelf.navigationController)
+        {
+            [weakSelf.navigationController popViewControllerAnimated:YES];
+        }
+        else
+        {
+            [weakSelf dismissViewControllerAnimated:YES completion:nil];
+        }
     };
     //完成
     self.navigationView.finishBlock = ^{
@@ -165,9 +176,13 @@
             weakSelf.endTime = 60;
         }
         IJSLodingView *lodingView = [IJSLodingView showLodingViewAddedTo:weakSelf.view title:@"正在处理中... ..."];
-        AVAsset *avasset =[AVAsset assetWithURL:weakSelf.inputPath];
-        [IJSVideoManager cutVideoAndExportVideoWithVideoAsset:avasset startTime:weakSelf.startTime endTime:weakSelf.endTime completion:^(NSURL *outputPath, NSError *error, IJSVideoState state) {
+
+        [IJSVideoManager cutVideoAndExportVideoWithVideoAsset:weakSelf.avasset startTime:weakSelf.startTime endTime:weakSelf.endTime completion:^(NSURL *outputPath, NSError *error, IJSVideoState state) {
             [lodingView removeFromSuperview];
+            if (weakSelf.isCancle)
+            {
+                return ;
+            }
             if (error)
             {
                 UIAlertController *alertView = [UIAlertController alertControllerWithTitle:@"警告" message:[NSString stringWithFormat:@"%@", error] preferredStyle:(UIAlertControllerStyleActionSheet)];
@@ -184,14 +199,17 @@
                     IJSVideoEditController *videoEditVc = [[IJSVideoEditController alloc] init];
                     videoEditVc.inputPath = outputPath;
                     videoEditVc.mapImageArr = weakSelf.mapImageArr;
-                    [weakSelf.navigationController pushViewController:videoEditVc animated:YES];
+                    if (weakSelf.navigationController)
+                    {
+                        [weakSelf.navigationController pushViewController:videoEditVc animated:YES];
+                    }
+                    else
+                    {
+                        [weakSelf presentViewController:videoEditVc animated:YES completion:nil];
+                    }
                 }
                 else
                 {
-                    if ([weakSelf.delegate respondsToSelector:@selector(didFinishCutVideoWithController:outputPath:error:state:)])
-                    {
-                        [weakSelf.delegate didFinishCutVideoWithController:weakSelf outputPath:outputPath error:nil state:state];
-                    }
                     if (weakSelf.navigationController)
                     {
                         [weakSelf.navigationController popViewControllerAnimated:YES];
@@ -200,6 +218,16 @@
                     {
                         [weakSelf dismissViewControllerAnimated:YES completion:nil];
                     }
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                        if ([weakSelf.delegate respondsToSelector:@selector(didFinishCutVideoWithController:outputPath:error:state:)])
+                        {
+                            [weakSelf.delegate didFinishCutVideoWithController:weakSelf outputPath:outputPath error:nil state:state];
+                        }
+                        if (weakSelf.didFinishCutVideoCallBack)
+                        {
+                            weakSelf.didFinishCutVideoCallBack(weakSelf, outputPath, error, state);
+                        }
+                    });
                 }
             }
             weakSelf.isDoing = NO;

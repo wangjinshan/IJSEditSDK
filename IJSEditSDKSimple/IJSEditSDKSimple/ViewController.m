@@ -66,7 +66,7 @@
 - (IBAction)_cutVideo:(UIButton *)sender
 {
     IJSVideoCutController *vc =[[IJSVideoCutController alloc] init];
-   NSString *str =  [[NSBundle mainBundle] pathForResource:@"1999" ofType:@"mp4"];
+   NSString *str =  [[NSBundle mainBundle] pathForResource:@"test" ofType:@"mp4"];
 //    http://dvideo.spriteapp.cn/video/2017/1210/5a2d27ea6e697_wpd.mp4
     NSURL *inputPath= [NSURL URLWithString:[NSString stringWithFormat:@"file://%@", str]];  //注意本地视频需要加头
 //     NSURL *inputPath= [NSURL URLWithString:@"http://dvideo.spriteapp.cn/video/2017/1210/5a2d27ea6e697_wpd.mp4"];  //注意本地视频需要加头
@@ -85,7 +85,7 @@
 - (IBAction)_videoEdit:(id)sender
 {
     IJSVideoEditController *vc =[[IJSVideoEditController alloc]init];
-    NSString *str =  [[NSBundle mainBundle] pathForResource:@"2001" ofType:@"mp4"];
+    NSString *str =  [[NSBundle mainBundle] pathForResource:@"test" ofType:@"mp4"];
     NSURL *inputPath= [NSURL URLWithString:[NSString stringWithFormat:@"file://%@", str]];  //注意本地视频需要加头
 //         NSURL *inputPath= [NSURL URLWithString:@"http://dvideo.spriteapp.cn/video/2017/1210/5a2d27ea6e697_wpd.mp4"];  //注意本地视频需要加头
     vc.inputPath = inputPath;

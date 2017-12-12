@@ -73,6 +73,7 @@
 		740DFE7A1FDD8AC600E57E3F /* 2001.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 740DFE791FDD8AC600E57E3F /* 2001.mp4 */; };
 		740DFE7D1FDE744A00E57E3F /* IJSVideoManagerController.m in Sources */ = {isa = PBXBuildFile; fileRef = 740DFE7C1FDE744A00E57E3F /* IJSVideoManagerController.m */; };
 		7450C23D1FDEADFE00ACAE0B /* IJSVideoTestController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7450C23C1FDEADFE00ACAE0B /* IJSVideoTestController.m */; };
+		7450C2411FDFBBD900ACAE0B /* 2003.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 7450C2401FDFBBD900ACAE0B /* 2003.mp4 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -207,6 +208,7 @@
 		740DFE7C1FDE744A00E57E3F /* IJSVideoManagerController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = IJSVideoManagerController.m; sourceTree = "<group>"; };
 		7450C23B1FDEADFE00ACAE0B /* IJSVideoTestController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IJSVideoTestController.h; sourceTree = "<group>"; };
 		7450C23C1FDEADFE00ACAE0B /* IJSVideoTestController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IJSVideoTestController.m; sourceTree = "<group>"; };
+		7450C2401FDFBBD900ACAE0B /* 2003.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = 2003.mp4; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -249,6 +251,7 @@
 				7450C23C1FDEADFE00ACAE0B /* IJSVideoTestController.m */,
 				740DFD9C1FDD75B600E57E3F /* 1999.mp4 */,
 				740DFE751FDD85AB00E57E3F /* test.mp4 */,
+				7450C2401FDFBBD900ACAE0B /* 2003.mp4 */,
 				740DFE791FDD8AC600E57E3F /* 2001.mp4 */,
 				740DFC221FDC4BDE00E57E3F /* Main.storyboard */,
 				740DFC251FDC4BDE00E57E3F /* Assets.xcassets */,
@@ -286,8 +289,8 @@
 			isa = PBXGroup;
 			children = (
 				740DFDC31FDD81C200E57E3F /* IJSImageConst.h */,
-				740DFDC21FDD81C200E57E3F /* IJSVideoManager.m */,
 				740DFDC41FDD81C200E57E3F /* IJSVideoManager.h */,
+				740DFDC21FDD81C200E57E3F /* IJSVideoManager.m */,
 			);
 			path = ConstantFile;
 			sourceTree = "<group>";
@@ -540,6 +543,7 @@
 				740DFE761FDD85AB00E57E3F /* test.mp4 in Resources */,
 				740DFC291FDC4BDE00E57E3F /* LaunchScreen.storyboard in Resources */,
 				740DFC261FDC4BDE00E57E3F /* Assets.xcassets in Resources */,
+				7450C2411FDFBBD900ACAE0B /* 2003.mp4 in Resources */,
 				740DFE7A1FDD8AC600E57E3F /* 2001.mp4 in Resources */,
 				740DFC241FDC4BDE00E57E3F /* Main.storyboard in Resources */,
 				740DFD9D1FDD75B600E57E3F /* 1999.mp4 in Resources */,

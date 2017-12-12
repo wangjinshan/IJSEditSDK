@@ -62,7 +62,7 @@
 // 点击回调
 - (void)typeOneAction:(UIButton *)button
 {
-    [self _resetButtonStatus:button];
+    [self resetButtonStatus:button];
     if (self.typeOneCallBack)
     {
         self.typeOneCallBack(button);
@@ -72,7 +72,7 @@
 
 - (void)typeTwoAction:(UIButton *)button
 {
-    [self _resetButtonStatus:button];
+    [self resetButtonStatus:button];
     if (self.typeTwoCallBack)
     {
         self.typeTwoCallBack(button);
@@ -81,7 +81,7 @@
 }
 - (void)cancleLastAction:(UIButton *)button
 {
-    [self _resetButtonStatus:button];
+    [self resetButtonStatus:button];
     if (self.cancleLastCallBack)
     {
         self.cancleLastCallBack(button);
@@ -90,7 +90,7 @@
 }
 
 #pragma mark 改变button的状态
-- (void)_resetButtonStatus:(UIButton *)button
+- (void)resetButtonStatus:(UIButton *)button
 {
     BOOL selected = button.selected;
     for (UIView *buttonView in self.toolBarView.subviews)

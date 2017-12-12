@@ -113,7 +113,7 @@
     }
     else
     {
-      navigationView = [[IJSImageNavigationView alloc] initWithFrame:CGRectMake(0, 0, JSScreenWidth, IJSVideoEditNavigationHeight)];
+      navigationView = [[IJSImageNavigationView alloc] initWithFrame:CGRectMake(0, 3, JSScreenWidth, IJSVideoEditNavigationHeight)];
     }
     navigationView.backgroundColor = [UIColor clearColor];
     [self.view addSubview:navigationView];

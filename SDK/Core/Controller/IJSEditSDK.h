@@ -13,8 +13,8 @@
 #import "IJSVideoEditController.h"
 #import "IJSVideoCutController.h"
 #import "IJSImageEditController.h"
-
-
+#import "IJSMapViewModel.h"
+#import "IJSVideoManagerController.h"
 
 
 #endif /* IJSEditSDK_h */

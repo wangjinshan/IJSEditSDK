@@ -187,7 +187,14 @@
 
 - (void)layoutSubviews
 {
-    _drawingView.center = CGPointMake(self.superview.center.x, self.superview.center.y - 44); //
+    if (IJSGiPhoneX)
+    {
+        _drawingView.center = CGPointMake(self.superview.center.x, self.superview.center.y - IJSGStatusBarAndNavigationBarHeight); //
+    }
+    else
+    {
+        _drawingView.center = CGPointMake(self.superview.center.x, self.superview.center.y - 44); //
+    }
 }
 #pragma mark - 隐藏
 - (void)_hiddenToolView:(BOOL)state

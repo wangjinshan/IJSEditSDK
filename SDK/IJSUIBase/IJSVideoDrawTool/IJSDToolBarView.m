@@ -23,7 +23,8 @@
 - (void)_createdUI
 {
     UIToolbar *toolBar = [[UIToolbar alloc] init];
-    toolBar.barTintColor = [UIColor clearColor];
+    toolBar.barTintColor = [UIColor colorWithRed:190 / 255.0 green:172 / 255.0 blue:153 / 255.0 alpha:1];
+    toolBar.tintColor =[UIColor whiteColor];
     [self addSubview:toolBar];
 
     toolBar.frame = CGRectMake(0, 0, self.frame.size.width, 30);
@@ -41,32 +42,44 @@
 - (void)cancleAction:(UIBarButtonItem *)item
 {
     if (self.cancleCallBack)
+    {
         self.cancleCallBack();
+    }
 }
 - (void)cleanAllAction:(UIBarButtonItem *)item
 {
     if (self.cleanAllCallBack)
+    {
         self.cleanAllCallBack();
+    }
 }
 - (void)cleanLastAction:(UIBarButtonItem *)item
 {
     if (self.cleanLastCallBack)
+    {
         self.cleanLastCallBack();
+    }
 }
 - (void)eraseAction:(UIBarButtonItem *)item
 {
     if (self.eraseCallBack)
+    {
         self.eraseCallBack();
+    }
 }
 - (void)addPhotoAction:(UIBarButtonItem *)item
 {
     if (self.addPhotoCallBack)
+    {
         self.addPhotoCallBack();
+    }
 }
 - (void)sivePhotoAction:(UIBarButtonItem *)item
 {
     if (self.savePhotoCallBack)
+    {
         self.savePhotoCallBack();
+    }
 }
 
 - (void)drawRect:(CGRect)rect

@@ -129,7 +129,12 @@
     [self _setupVideoImage];
 
     //刻度尺
-    CGRect rulerFrame = CGRectMake(0, self.slideHeight, self.marginLeft + self.assetDuration * self.widthPerSecond, self.js_height - self.slideHeight);
+    CGFloat rulerW = self.marginLeft + self.assetDuration * self.widthPerSecond;
+    if (rulerW > 5000)
+    {
+        rulerW = 5000;
+    }
+    CGRect rulerFrame = CGRectMake(0, self.slideHeight, rulerW, self.js_height - self.slideHeight);
     IJSVideoRulerView *rulerView = [[IJSVideoRulerView alloc] initWithFrame:rulerFrame widthPerSecond:self.widthPerSecond themeColor:[UIColor whiteColor] slideWidth:self.marginLeft assetDuration:self.assetDuration];
     [self.contentView addSubview:rulerView];
     self.rulerView = rulerView;
@@ -323,6 +328,12 @@
 {
     [self getVideoLenghtThenNotifyDelegate];
 }
+-(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    CGFloat rulerW = self.marginLeft + self.assetDuration * self.widthPerSecond;
+    CGRect rulerFrame = CGRectMake(0, self.slideHeight, rulerW, self.js_height - self.slideHeight);
+    self.rulerView.frame = rulerFrame;
+}
 
 #pragma mark 视频截图
 /*
@@ -364,6 +375,7 @@
         UIImageView *temp = [[UIImageView alloc] initWithImage:videoScreen];
         CGRect rect = temp.frame;
         rect.size.width = videoScreen.size.width;
+        rect.size.height = self.slideHeight;
         temp.frame = rect;
         [self.videoThumView addSubview:temp];
         imageWidth = temp.frame.size.width; // 单张图片的宽度
@@ -402,6 +414,7 @@
     }
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        
         for (int i = 1; i <= times.count; i++)
         {
             CMTime time = [((NSValue *) [times objectAtIndex:i - 1]) CMTimeValue];
@@ -441,4 +454,6 @@
 - (void)drawRect:(CGRect)rect
 {
 }
+
+
 @end

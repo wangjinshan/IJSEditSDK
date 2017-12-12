@@ -18,9 +18,11 @@
 #import "IJSLodingView.h"
 #import "IJSVideoTrimView.h"
 #import "IJSMapView.h"
+#import "IJSMapViewModel.h"
 
 #import <IJSFoundation/IJSFoundation.h>
 #import "IJSExtension.h"
+#import "IJSVideoCutController.h"
 
 
 @interface IJSVideoEditController () <IJSVideoTrimViewDelegate>
@@ -48,6 +50,9 @@
 @property (nonatomic, assign) CGFloat endTime;                       // 结束时间
 @property (nonatomic, assign) CGFloat backStartPosition;            // 回到开始位置
 @property(nonatomic,assign) CGRect temporaryPlayViewRect;;  // 临时存储之前的play的尺寸
+@property(nonatomic,assign) BOOL isCancle;  // 已经取消
+@property(nonatomic,weak) IJSImageNavigationView *naviView;;  // 导航条
+
 @end
 
 @implementation IJSVideoEditController
@@ -55,13 +60,17 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.view.backgroundColor = [UIColor blackColor];
 
-    self.resultAvasset = [AVAsset assetWithURL:self.inputPath];
     self.videoDuraing = CMTimeGetSeconds([self.resultAvasset duration]);
-
+    self.resultAvasset = [AVAsset assetWithURL:self.inputPath];
     self.videoSize = [IJSVideoManager getVideSizeFromAvasset:self.resultAvasset];
-    self.isPlaying = YES;
+    self.isPlaying = NO;
+    self.isCancle = NO;
+    // 贴图数据预备
+    if (self.mapImageArr == nil)
+    {
+        [self _setupMapData];
+    }
     [self _setupUI];
     [self _setupPlayer]; // 解析数据
 }
@@ -78,6 +87,29 @@
     [[UIApplication sharedApplication] setStatusBarHidden:NO];
     [self.player pause];
     [self removeListenPlayerTimer];
+}
+#pragma mark - 设置map数据
+- (void)_setupMapData
+{
+    if (self.mapImageArr == nil)
+    {
+        NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"JSPhotoSDK" ofType:@"bundle"];
+        NSString *filePath = [bundlePath stringByAppendingString:@"/Expression"];
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+        BOOL isDir = NO;
+        BOOL existed = [fileManager fileExistsAtPath:filePath isDirectory:&isDir];
+        if ( !(isDir == YES && existed == YES) )
+        {  //不存在
+            return;
+        }
+        __weak typeof (self) weakSelf = self;
+        NSMutableArray *mapArr =[NSMutableArray array];
+        [IJSFFilesManager ergodicFilesFromFolderPath:filePath completeHandler:^(NSInteger fileCount, NSInteger fileSzie, NSMutableArray *filePath) {
+            IJSMapViewModel *model = [[IJSMapViewModel alloc] initWithImageDataModel:filePath];
+            [mapArr addObject:model];
+            weakSelf.mapImageArr = mapArr;
+        }];
+    }
 }
 #pragma mark 重新布局UI
 - (void)_setupUI
@@ -109,8 +141,31 @@
     self.placeholderToolView = placeholderToolView;
 
     // 导航条
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[NSBundle localizedStringForKey:@"Done"] style:(UIBarButtonItemStylePlain) target:self action:@selector(_didFinishEditVideoAction)];
-
+    if (self.navigationController)
+    {
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[NSBundle localizedStringForKey:@"Done"] style:(UIBarButtonItemStylePlain) target:self action:@selector(_didFinishEditVideoAction)];
+    }
+    else
+    {
+        IJSImageNavigationView *naviView;
+        if (IJSGiPhoneX)
+        {
+            naviView =[[IJSImageNavigationView alloc]initWithFrame:CGRectMake(0, IJSGStatusBarHeight, JSScreenWidth, IJSINavigationHeight)];
+        }
+        else
+        {
+           naviView =[[IJSImageNavigationView alloc]initWithFrame:CGRectMake(0, 0, JSScreenWidth, IJSINavigationHeight)];
+        }
+        __weak typeof (self) weakSelf = self;
+        naviView.cancleBlock = ^{
+            [weakSelf dismissViewControllerAnimated:YES completion:nil];
+        };
+        naviView.finishBlock = ^{
+            [weakSelf _didFinishEditVideoAction];
+        };
+        [self.view addSubview:naviView];
+        self.naviView = naviView;
+    }
     // 工具条
     IJSImageToolView *toolView = [[IJSImageToolView alloc] initWithFrame:CGRectMake(0, JSScreenHeight - IJSGTabbarSafeBottomMargin - ToolBarMarginBottom, JSScreenWidth, ToolBarMarginBottom)];
     [toolView setupUIForVideoEditController];
@@ -130,7 +185,7 @@
     self.cutHodelView = cutHodelView;
     // 裁剪器
    
-    IJSVideoTrimView *trimView = [[IJSVideoTrimView alloc] initWithFrame:CGRectMake(0, 0, JSScreenWidth, IJSVideoSecondCuttrimViewHeight * 0.7) minCutTime:self.minVideoCut ?: 4 maxCutTime:self.maxVideoCut ?: 10 assetDuration:CMTimeGetSeconds([self.resultAvasset duration]) avAsset:self.resultAvasset];
+    IJSVideoTrimView *trimView = [[IJSVideoTrimView alloc] initWithFrame:CGRectMake(0, 0, JSScreenWidth, IJSVideoSecondCuttrimViewHeight * 0.7) minCutTime:self.minCutTime ?: 4 maxCutTime:self.maxCutTime ?: 10 assetDuration:CMTimeGetSeconds([self.resultAvasset duration]) avAsset:self.resultAvasset];
 
     [cutHodelView addSubview:trimView];
     self.trimView = trimView;
@@ -170,6 +225,7 @@
     __weak typeof(self) weakSelf = self;
     //取消
     self.navigationgView.cancleBlock = ^{
+        weakSelf.isCancle = YES;
         [weakSelf.navigationController popViewControllerAnimated:YES];
     };
     // 完成
@@ -207,7 +263,10 @@
         [weakSelf _videoDrawToolSubViewUnableUserInteractionEnabled:NO];  // 不允许交互
         weakSelf.cutHodelView.hidden = NO;
         weakSelf.placeholderToolView.hidden = YES;
+        
         [weakSelf.navigationController setNavigationBarHidden:YES animated:YES];
+        weakSelf.naviView.hidden = YES;
+        
         weakSelf.toolView.hidden = YES;  // 隐藏工具条
         [weakSelf.view bringSubviewToFront:weakSelf.cutHodelView];
          [weakSelf resetTrimView];  //重新加预览条
@@ -218,6 +277,8 @@
         weakSelf.cutHodelView.hidden = YES;
         weakSelf.playView.frame =weakSelf.temporaryPlayViewRect;
         [weakSelf.navigationController setNavigationBarHidden:NO animated:YES];
+        weakSelf.naviView.hidden = NO;
+        
         weakSelf.toolView.hidden = NO;  // 不隐藏工具条
     };
     // 裁剪完成了
@@ -227,6 +288,7 @@
             weakSelf.playView.frame = weakSelf.temporaryPlayViewRect;
             weakSelf.playView.center = weakSelf.view.center;
             [weakSelf.navigationController setNavigationBarHidden:NO animated:YES];
+            weakSelf.naviView.hidden = NO;
             weakSelf.toolView.hidden = NO;  // 不隐藏工具条
             [weakSelf.player pause];
         });
@@ -279,6 +341,10 @@
 
         [IJSVideoManager addWatermarkForVideoAsset:weakSelf.resultAvasset waterImage:image describe:IJSLOG completion:^(NSURL *outputPath, NSError *error, IJSVideoState state) {
             [lodingView removeFromSuperview];
+            if (weakSelf.isCancle)
+            {  // 已经取消则不回掉
+                return;
+            }
             weakSelf.isDoing = NO;
             if (error)
             {
@@ -299,24 +365,51 @@
                 }
                 else
                 {
-                    [weakSelf dismissViewControllerAnimated:YES completion:^{
+                    [weakSelf _backToFirstPresentViewController];
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                         [weakSelf _outputVideoPath:outputPath error:error state:state];
-                    }];
+                    });
                 }
             }
         }];
     }];
 }
+- (void)_backToFirstPresentViewController
+{
+    UIViewController *vc = self.presentingViewController;
+    if (!vc.presentingViewController)
+    {
+        [vc dismissViewControllerAnimated:YES completion:nil];
+      return;
+    }
+    while (vc.presentingViewController)
+    {
+        vc = vc.presentingViewController;
+    }
+    [vc dismissViewControllerAnimated:YES completion:nil];
+}
 /// 私有方法
 -(void)_outputVideoPath:(NSURL *)outputPath error:(NSError *)error state:(IJSVideoState)state
 {
-    if ([self.delegate respondsToSelector:@selector(didFinishEditVideoWithController:outputPath:error:state:)])
+    if ([self.delegate respondsToSelector:@selector(didFinishCutVideoWithController:outputPath:error:state:)])
     {
-        [self.delegate didFinishEditVideoWithController:self outputPath:outputPath error:error state:state];
+        [self.delegate didFinishCutVideoWithController:self outputPath:outputPath error:error state:state];
     }
-    if (self.didFinishEditVideoCallBack)
+    if (self.didFinishCutVideoCallBack)
     {
-        self.didFinishEditVideoCallBack(self, outputPath, error, state);
+        self.didFinishCutVideoCallBack(self, outputPath, error, state);
+    }
+    if ([self.presentingViewController isKindOfClass:[IJSVideoCutController class]])
+    {
+        IJSVideoCutController *vc = (IJSVideoCutController *)self.presentingViewController;
+        if ([vc.delegate respondsToSelector:@selector(didFinishCutVideoWithController:outputPath:error:state:)])
+        {
+            [vc.delegate didFinishCutVideoWithController:self outputPath:outputPath error:error state:state];
+        }
+        if (vc.didFinishCutVideoCallBack)
+        {
+            vc.didFinishCutVideoCallBack(self, outputPath, error, state);
+        }
     }
 }
 
@@ -334,9 +427,17 @@
         {
             _videoDrawView = [[IJSVideoDrawingView alloc] initWithFrame:CGRectMake(0, IJSGNavigationBarHeight, JSScreenWidth, JSScreenHeight - IJSGNavigationBarHeight  - ToolBarMarginBottom) drawingViewSize:CGSizeMake(self.playView.js_width, self.playView.js_height)];
         }
+
         _videoDrawView.controller = self;
         [self.view addSubview:_videoDrawView];
+        [self.view insertSubview:_videoDrawView atIndex:1];
+        _videoDrawView.backgroundColor =[UIColor clearColor];
     }
+    __weak typeof (self) weakSelf = self;
+    _videoDrawView.isDrawing = ^{
+        [weakSelf.player play];
+    };
+    
     return _videoDrawView;
 }
 // 贴图
@@ -421,8 +522,8 @@
             weakexPortView.center = weakSelf.videoDrawView.drawingView.center;
         }
         // y
-        if (viewPoint.y < weakSelf.videoDrawView.drawingView.js_top - weakexPortView.js_width * 0.3 ||
-            viewPoint.y > weakSelf.videoDrawView.drawingView.js_bottom + weakexPortView.js_width * 0.3)
+        if (viewPoint.y < weakSelf.videoDrawView.drawingView.js_top ||
+            viewPoint.y > weakSelf.videoDrawView.drawingView.js_bottom)
         {
             weakexPortView.center = weakSelf.videoDrawView.drawingView.center;
         }
@@ -456,14 +557,14 @@
     // 改变坐标
     exportTextView.textViewExpoetViewPanCallBack = ^(CGPoint viewPoint) {
         // x
-        if (viewPoint.x < -weakexPortView.js_width * 0.3 ||
-            viewPoint.x > JSScreenWidth + weakexPortView.js_width * 0.3)
+        if (viewPoint.x < 0 ||
+            viewPoint.x > JSScreenWidth)
         {
             weakexPortView.center = weakSelf.videoDrawView.drawingView.center;
         }
         // y
-        if (viewPoint.y < weakSelf.videoDrawView.drawingView.js_top - weakexPortView.js_width * 0.3 ||
-            viewPoint.y > weakSelf.videoDrawView.drawingView.js_bottom + weakexPortView.js_width * 0.3)
+        if (viewPoint.y < weakSelf.videoDrawView.drawingView.js_top ||
+            viewPoint.y > weakSelf.videoDrawView.drawingView.js_bottom)
         {
             weakexPortView.center = weakSelf.videoDrawView.drawingView.center;
         }
@@ -500,7 +601,7 @@
 -(void)resetTrimView
 {
     [self.trimView removeFromSuperview];
-    IJSVideoTrimView *trimView = [[IJSVideoTrimView alloc] initWithFrame:CGRectMake(0, 0, JSScreenWidth, IJSVideoSecondCuttrimViewHeight * 0.7) minCutTime:self.minVideoCut ?: 4 maxCutTime:self.maxVideoCut ?: 10 assetDuration:CMTimeGetSeconds([self.resultAvasset duration]) avAsset:self.resultAvasset];
+    IJSVideoTrimView *trimView = [[IJSVideoTrimView alloc] initWithFrame:CGRectMake(0, 0, JSScreenWidth, IJSVideoSecondCuttrimViewHeight * 0.7) minCutTime:self.minCutTime ?: 4 maxCutTime:self.maxCutTime ?: 10 assetDuration:CMTimeGetSeconds([self.resultAvasset duration]) avAsset:self.resultAvasset];
     [self.cutHodelView addSubview:trimView];
     self.trimView = trimView;
     trimView.delegate = self;
@@ -555,6 +656,12 @@
 #pragma mark - touch方法
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
+    __weak typeof (self) weakSelf = self;
+    _videoDrawView.isDrawing = ^{
+        [weakSelf.player play];
+        return ;
+    };
+    
     if (self.isPlaying)
     {
         [self.player play];
@@ -564,6 +671,7 @@
     {
         [self.player pause];
     }
+    self.isPlaying = !self.isPlaying;
 }
 
 #pragma mark - 播放监听器
@@ -588,11 +696,13 @@
 {
     self.backStartPosition = CMTimeGetSeconds([self.player currentTime]);
     [self.trimView changeTrackerViewOriginX:self.backStartPosition];
+
     if (self.backStartPosition >= self.endTime)
     {
         self.backStartPosition = self.startTime;
         [self seekVideoToPos:self.startTime];
         [self.trimView changeTrackerViewOriginX:self.startTime];
+        [self.player play];
     }
 }
 // 播放结束
