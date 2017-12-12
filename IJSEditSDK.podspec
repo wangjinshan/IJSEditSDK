@@ -51,7 +51,7 @@ Pod::Spec.new do |s|
 
   s.subspec 'Core' do |sp|
 
-      sp.source_files = 'SDK/Core/ConstantFile/*.{h,m}','SDK/Core/Controllers/*.{h,m}','SDK/Core/Model/*.{h,m}','SDK/Core/View/*.{h,m}' 
+      sp.source_files = 'SDK/Core/ConstantFile/*.{h,m}','SDK/Core/Controller/*.{h,m}','SDK/Core/Model/*.{h,m}','SDK/Core/View/*.{h,m}' 
 
       sp.dependency 'IJSEditSDK/IJSVideoDrawTool'
       sp.dependency 'IJSEditSDK/TOCropViewController'
