@@ -12,8 +12,6 @@
 
 
 #import <IJSFoundation/IJSFoundation.h>
-
-
 #import "IJSEditSDK.h"
 
 
@@ -96,7 +94,9 @@
         NSLog(@"--block------%lu",(unsigned long)state);
     };
     vc.delegate = self;
-    [self presentViewController:vc animated:YES completion:nil];
+    [self.navigationController pushViewController:vc animated:YES];
+    
+//    [self presentViewController:vc animated:YES completion:nil];
 }
 
 -(void)didFinishCutVideoWithController:(IJSVideoManagerController *)controller outputPath:(NSURL *)outputPath error:(NSError *)error state:(IJSVideoState)state

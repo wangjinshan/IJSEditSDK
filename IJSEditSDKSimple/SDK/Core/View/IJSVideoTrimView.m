@@ -328,12 +328,7 @@
 {
     [self getVideoLenghtThenNotifyDelegate];
 }
--(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
-{
-    CGFloat rulerW = self.marginLeft + self.assetDuration * self.widthPerSecond;
-    CGRect rulerFrame = CGRectMake(0, self.slideHeight, rulerW, self.js_height - self.slideHeight);
-    self.rulerView.frame = rulerFrame;
-}
+
 
 #pragma mark 视频截图
 /*

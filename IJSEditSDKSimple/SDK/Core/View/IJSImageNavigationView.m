@@ -44,7 +44,7 @@
     [finishButton setTitle:[NSBundle localizedStringForKey:@"OK"] forState:UIControlStateNormal];
     [finishButton addTarget:self action:@selector(finishButtonAction:) forControlEvents:UIControlEventTouchUpInside];
     [navigationView addSubview:finishButton];
-    [finishButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [finishButton setTitleColor:[UIColor greenColor] forState:UIControlStateNormal];
     self.finishButton = finishButton;
     self.finishButton.js_centerY = self.js_height * 0.5;
 }

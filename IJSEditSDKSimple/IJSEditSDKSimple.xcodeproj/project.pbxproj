@@ -303,12 +303,12 @@
 				740DFDC81FDD81C200E57E3F /* IJSImageManagerController.m */,
 				740DFDC61FDD81C200E57E3F /* IJSImageEditController.h */,
 				740DFDCB1FDD81C200E57E3F /* IJSImageEditController.m */,
-				740DFDCC1FDD81C200E57E3F /* IJSVideoEditController.h */,
-				740DFDC91FDD81C200E57E3F /* IJSVideoEditController.m */,
-				740DFDCE1FDD81C200E57E3F /* IJSVideoCutController.h */,
-				740DFDC71FDD81C200E57E3F /* IJSVideoCutController.m */,
 				740DFE7B1FDE744A00E57E3F /* IJSVideoManagerController.h */,
 				740DFE7C1FDE744A00E57E3F /* IJSVideoManagerController.m */,
+				740DFDCE1FDD81C200E57E3F /* IJSVideoCutController.h */,
+				740DFDC71FDD81C200E57E3F /* IJSVideoCutController.m */,
+				740DFDCC1FDD81C200E57E3F /* IJSVideoEditController.h */,
+				740DFDC91FDD81C200E57E3F /* IJSVideoEditController.m */,
 			);
 			path = Controller;
 			sourceTree = "<group>";

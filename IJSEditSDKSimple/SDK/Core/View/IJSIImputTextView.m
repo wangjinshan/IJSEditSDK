@@ -46,19 +46,6 @@
     self.effectView.frame = CGRectMake(0, 0, JSScreenWidth, JSScreenHeight);
     [backView addSubview:self.effectView];
 
-    // 导航条
-    IJSImageNavigationView *navigationView;
-    if (IJSGiPhoneX)
-    {
-        navigationView  = [[IJSImageNavigationView alloc] initWithFrame:CGRectMake(0, IJSGNavigationBarHeight, JSScreenWidth, IJSINavigationHeight)];
-    }
-    else
-    {
-        navigationView  = [[IJSImageNavigationView alloc] initWithFrame:CGRectMake(0, 0, JSScreenWidth, IJSINavigationHeight)];
-    }
-    navigationView.backgroundColor = [UIColor colorWithWhite:1 alpha:0];
-    [backView addSubview:navigationView];
-    self.navigationView = navigationView;
 
     UITextView *textView = [[UITextView alloc] init];
     textView.delegate = self;
@@ -81,6 +68,20 @@
     colorButtonView.frame = CGRectMake(0, JSScreenHeight - IJSGTabbarSafeBottomMargin - ColorButtonViewWidth , JSScreenWidth, ColorButtonViewWidth);
     [backView addSubview:colorButtonView];
     self.colorButtonView = colorButtonView;
+    
+    // 导航条
+    IJSImageNavigationView *navigationView;
+    if (IJSGiPhoneX)
+    {
+        navigationView  = [[IJSImageNavigationView alloc] initWithFrame:CGRectMake(0, IJSGNavigationBarHeight, JSScreenWidth, IJSINavigationHeight)];
+    }
+    else
+    {
+        navigationView  = [[IJSImageNavigationView alloc] initWithFrame:CGRectMake(0, 0, JSScreenWidth, IJSINavigationHeight)];
+    }
+    navigationView.backgroundColor = [UIColor colorWithWhite:1 alpha:0];
+    [backView addSubview:navigationView];
+    self.navigationView = navigationView;
 }
 - (void)_callBackBlock
 {

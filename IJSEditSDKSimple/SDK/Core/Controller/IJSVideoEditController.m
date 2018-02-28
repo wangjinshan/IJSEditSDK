@@ -79,12 +79,14 @@
 {
     [super viewWillAppear:animated];
     [[UIApplication sharedApplication] setStatusBarHidden:YES];
+     [self.navigationController setNavigationBarHidden:YES animated:animated];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
     [[UIApplication sharedApplication] setStatusBarHidden:NO];
+     [self.navigationController setNavigationBarHidden:NO animated:animated];
     [self.player pause];
     [self removeListenPlayerTimer];
 }
@@ -135,41 +137,52 @@
     // 涂鸦层
     // 工具站位视图
     UIView *placeholderToolView = [[UIView alloc] initWithFrame:CGRectMake(0, JSScreenHeight - JSScreenHeight * 230 / 667 - IJSGTabbarSafeBottomMargin, JSScreenWidth, JSScreenHeight * 230 / 667)];
-    placeholderToolView.backgroundColor = [UIColor clearColor];
+    placeholderToolView.backgroundColor = [UIColor blackColor];
     [self.view addSubview:placeholderToolView];
     placeholderToolView.hidden = YES;
     self.placeholderToolView = placeholderToolView;
 
     // 导航条
-    if (self.navigationController)
+    CGFloat top;
+    if ([UIApplication sharedApplication].statusBarHidden)
     {
-        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[NSBundle localizedStringForKey:@"Done"] style:(UIBarButtonItemStylePlain) target:self action:@selector(_didFinishEditVideoAction)];
+        top = 0;
     }
     else
     {
-        IJSImageNavigationView *naviView;
-        if (IJSGiPhoneX)
+        top = IJSGStatusBarHeight;
+    }
+    IJSImageNavigationView *naviView;
+    if (IJSGiPhoneX)
+    {
+        naviView =[[IJSImageNavigationView alloc]initWithFrame:CGRectMake(0, top, JSScreenWidth, IJSGNavigationBarHeight)];
+    }
+    else
+    {
+        naviView =[[IJSImageNavigationView alloc]initWithFrame:CGRectMake(0, top, JSScreenWidth, IJSGNavigationBarHeight)];
+    }
+    __weak typeof (self) weakSelf = self;
+    naviView.cancleBlock = ^{
+        if (weakSelf.navigationController)
         {
-            naviView =[[IJSImageNavigationView alloc]initWithFrame:CGRectMake(0, IJSGStatusBarHeight, JSScreenWidth, IJSINavigationHeight)];
+            [weakSelf.navigationController popViewControllerAnimated:YES];
         }
         else
         {
-           naviView =[[IJSImageNavigationView alloc]initWithFrame:CGRectMake(0, 0, JSScreenWidth, IJSINavigationHeight)];
-        }
-        __weak typeof (self) weakSelf = self;
-        naviView.cancleBlock = ^{
             [weakSelf dismissViewControllerAnimated:YES completion:nil];
-        };
-        naviView.finishBlock = ^{
-            [weakSelf _didFinishEditVideoAction];
-        };
-        [self.view addSubview:naviView];
-        self.naviView = naviView;
-    }
+        }
+    };
+    naviView.finishBlock = ^{
+        [weakSelf _didFinishEditVideoAction];
+    };
+    [self.view addSubview:naviView];
+    self.naviView = naviView;
+    naviView.backgroundColor =[UIColor blackColor];
+    
     // 工具条
     IJSImageToolView *toolView = [[IJSImageToolView alloc] initWithFrame:CGRectMake(0, JSScreenHeight - IJSGTabbarSafeBottomMargin - ToolBarMarginBottom, JSScreenWidth, ToolBarMarginBottom)];
     [toolView setupUIForVideoEditController];
-    toolView.backgroundColor = [UIColor clearColor];
+    toolView.backgroundColor = [UIColor blackColor];
     [self.view addSubview:toolView];
     self.toolView = toolView;
 
@@ -195,7 +208,7 @@
    //裁剪控制器
     IJSImageNavigationView *trimNavigation = [[IJSImageNavigationView alloc] initWithFrame:CGRectMake(0, CGRectGetHeight(trimView.frame), JSScreenWidth, CGRectGetHeight(cutHodelView.frame) - CGRectGetHeight(trimView.frame))];
     [cutHodelView addSubview:trimNavigation];
-    trimNavigation.backgroundColor = [UIColor clearColor];
+    trimNavigation.backgroundColor = [UIColor blackColor];
     self.trimNavigation = trimNavigation;
 
     cutHodelView.hidden = YES;
@@ -252,10 +265,7 @@
         [weakSelf _videoDrawToolSubViewUnableUserInteractionEnabled:NO];
         weakSelf.placeholderToolView.hidden = YES;
         weakSelf.imputTextView.hidden = NO;
-        if (weakSelf.navigationController)
-        {
-            [weakSelf.navigationController setNavigationBarHidden:YES animated:YES];
-        }
+         weakSelf.naviView.hidden = YES;
     };
     // 裁剪
     self.toolView.clipButtonBlock = ^(UIButton *button) {
@@ -264,7 +274,6 @@
         weakSelf.cutHodelView.hidden = NO;
         weakSelf.placeholderToolView.hidden = YES;
         
-        [weakSelf.navigationController setNavigationBarHidden:YES animated:YES];
         weakSelf.naviView.hidden = YES;
         
         weakSelf.toolView.hidden = YES;  // 隐藏工具条
@@ -276,7 +285,7 @@
     self.trimNavigation.cancleBlock = ^{
         weakSelf.cutHodelView.hidden = YES;
         weakSelf.playView.frame =weakSelf.temporaryPlayViewRect;
-        [weakSelf.navigationController setNavigationBarHidden:NO animated:YES];
+      
         weakSelf.naviView.hidden = NO;
         
         weakSelf.toolView.hidden = NO;  // 不隐藏工具条
@@ -287,7 +296,6 @@
             weakSelf.cutHodelView.hidden = YES;
             weakSelf.playView.frame = weakSelf.temporaryPlayViewRect;
             weakSelf.playView.center = weakSelf.view.center;
-            [weakSelf.navigationController setNavigationBarHidden:NO animated:YES];
             weakSelf.naviView.hidden = NO;
             weakSelf.toolView.hidden = NO;  // 不隐藏工具条
             [weakSelf.player pause];
@@ -419,13 +427,22 @@
 {
     if (_videoDrawView == nil)
     {
-        if (IJSGiPhoneX)
+        CGFloat top;
+        if ([UIApplication sharedApplication].statusBarHidden)
         {
-            _videoDrawView = [[IJSVideoDrawingView alloc] initWithFrame:CGRectMake(0, IJSGStatusBarAndNavigationBarHeight, JSScreenWidth, JSScreenHeight - IJSGStatusBarAndNavigationBarHeight -IJSGTabbarSafeBottomMargin - ToolBarMarginBottom) drawingViewSize:CGSizeMake(self.playView.js_width, self.playView.js_height)];
+            top = IJSGNavigationBarHeight;
         }
         else
         {
-            _videoDrawView = [[IJSVideoDrawingView alloc] initWithFrame:CGRectMake(0, IJSGNavigationBarHeight, JSScreenWidth, JSScreenHeight - IJSGNavigationBarHeight  - ToolBarMarginBottom) drawingViewSize:CGSizeMake(self.playView.js_width, self.playView.js_height)];
+            top = IJSGStatusBarAndNavigationBarHeight;
+        }
+        if (IJSGiPhoneX)
+        {
+            _videoDrawView = [[IJSVideoDrawingView alloc] initWithFrame:CGRectMake(0, top, JSScreenWidth, JSScreenHeight - IJSGStatusBarAndNavigationBarHeight -IJSGTabbarSafeBottomMargin - ToolBarMarginBottom) drawingViewSize:CGSizeMake(self.playView.js_width, self.playView.js_height)];
+        }
+        else
+        {
+            _videoDrawView = [[IJSVideoDrawingView alloc] initWithFrame:CGRectMake(0, top, JSScreenWidth, JSScreenHeight - IJSGNavigationBarHeight  - ToolBarMarginBottom) drawingViewSize:CGSizeMake(self.playView.js_width, self.playView.js_height)];
         }
 
         _videoDrawView.controller = self;
@@ -481,17 +498,11 @@
         _imputTextView.textCallBackBlock = ^(UITextView *textView) {
             weakSelf.placeholderToolView.hidden = YES;
             weakSelf.exportTextView.textView = textView;
-            if (weakSelf.navigationController)
-            {
-                [weakSelf.navigationController setNavigationBarHidden:NO animated:YES];
-            }
+             weakSelf.naviView.hidden = NO;
         };
         // 取消
         _imputTextView.textCancelCallBack = ^{
-            if (weakSelf.navigationController)
-            {
-                [weakSelf.navigationController setNavigationBarHidden:NO animated:YES];
-            }
+            weakSelf.naviView.hidden = NO;
         };
     }
     return _imputTextView;
